@@ -1,0 +1,22 @@
+// ─────────────────────────────────────────────────────────────
+// Local.xcconfig.sample
+//
+// 본인 계정의 UID 로 바꿔서 확인하고 싶을 때 사용한다.
+//
+//   cp Config/Local.xcconfig.sample Config/Local.xcconfig
+//
+// Config/Local.xcconfig 는 .gitignore 에 등록되어 있어 커밋되지 않는다.
+// AdWhale.xcconfig 마지막 줄에서 include 되므로, 여기 쓴 값이 최종 승자다.
+// 바꾸고 싶은 항목만 남기고 나머지는 지우면 된다.
+// ─────────────────────────────────────────────────────────────
+
+// ADWHALE_PUBLISHER_UID = MD0000000000000
+
+// ADWHALE_PLACEMENT_BANNER       = AU0000000000000
+// ADWHALE_PLACEMENT_INTERSTITIAL = AU0000000000000
+// ADWHALE_PLACEMENT_REWARD       = AU0000000000000
+// ADWHALE_PLACEMENT_NATIVE       = AU0000000000000
+// ADWHALE_PLACEMENT_APP_OPEN     = AU0000000000000
+// ADWHALE_PLACEMENT_POPUP        = AU0000000000000
+
+// ADWHALE_ADMOB_APP_ID = ca-app-pub-0000000000000000~0000000000

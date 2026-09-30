@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleDisplayName</key>
+	<string>AdWhale SwiftUI</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+	</array>
+
+	<!-- ─────────────────────────────────────────────────────────
+	     AdWhale 필수 설정
+	     값은 Config/AdWhale.xcconfig 에서 빌드 시점에 치환된다.
+	     (Android 의 AndroidManifest.xml <meta-data> 에 대응)
+	     ───────────────────────────────────────────────────────── -->
+	<key>net.adwhale.sdk.mediation.PUBLISHER_UID</key>
+	<string>$(ADWHALE_PUBLISHER_UID)</string>
+
+	<!-- AdMob 어댑터를 링크했다면 필수. 없으면 GoogleMobileAds 가 실행 시점에 크래시한다. -->
+	<key>GADApplicationIdentifier</key>
+	<string>$(ADWHALE_ADMOB_APP_ID)</string>
+
+	<!-- iOS 14+ ATT 권한 요청 문구. IDFA 를 쓰려면 필수. -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>사용자 맞춤 광고를 제공하기 위해 광고 식별자(IDFA)에 접근합니다.</string>
+
+	<!-- 샘플 편의를 위한 설정. 광고 소재 중 http 리소스가 섞여 있어도 로드되도록 한다.
+	     실제 앱에서는 App Store 심사 사유를 소명해야 하므로 필요한 도메인만 예외 처리할 것. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+
+	<!-- 샘플에서 사용하는 지면 UID 모음. SampleConfig(Swift) 가 이 딕셔너리를 읽는다.
+	     SDK 가 요구하는 키가 아니라 이 샘플 앱만의 구조다.
+	     (Android 의 res/values/strings.xml 에 대응) -->
+	<key>AdWhaleSampleConfig</key>
+	<dict>
+		<key>BannerPlacementUid</key>
+		<string>$(ADWHALE_PLACEMENT_BANNER)</string>
+		<key>InterstitialPlacementUid</key>
+		<string>$(ADWHALE_PLACEMENT_INTERSTITIAL)</string>
+		<key>RewardPlacementUid</key>
+		<string>$(ADWHALE_PLACEMENT_REWARD)</string>
+		<key>NativePlacementUid</key>
+		<string>$(ADWHALE_PLACEMENT_NATIVE)</string>
+		<key>AppOpenPlacementUid</key>
+		<string>$(ADWHALE_PLACEMENT_APP_OPEN)</string>
+		<key>PopupPlacementUid</key>
+		<string>$(ADWHALE_PLACEMENT_POPUP)</string>
+	</dict>
+
+	<!-- SKAdNetwork (iOS 14.5+ 어트리뷰션).
+	     네트워크별 공식 가이드의 최신 목록으로 갱신해서 사용할 것. -->
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>4fzdc2evr5.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>2fnua5tdw4.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>ydx93a7ass.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>p78axxw29g.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>v72qych5uu.skadnetwork</string>
+		</dict>
+	</array>
+</dict>
+</plist>

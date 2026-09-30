@@ -1,0 +1,62 @@
+# ─────────────────────────────────────────────────────────────
+# Xcode
+#
+# .xcodeproj 는 커밋한다 (project.pbxproj, 공유 스킴, contents.xcworkspacedata).
+# 사용자별 상태(xcuserdata)와 자동 생성물만 무시한다.
+# 주의: `*.xcodeproj/` 처럼 폴더 전체를 무시하면 내부 파일의 `!` 예외가 동작하지 않는다.
+# ─────────────────────────────────────────────────────────────
+build/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.hmap
+
+# 사용자별 Xcode 상태 (창 위치, 스킴 표시 순서, 브레이크포인트 등)
+xcuserdata/
+
+# Xcode 가 프로젝트를 열 때 만드는 워크스페이스 부산물
+# (슬래시가 들어간 패턴은 .gitignore 위치 기준으로 고정되므로 **/ 를 붙인다)
+**/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+**/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+
+# 빌드 산출물
+*.ipa
+*.xcarchive
+*.dSYM.zip
+
+# ─────────────────────────────────────────────────────────────
+# Swift Package Manager
+#
+# Package.resolved 는 커밋하지 않는다. 파트너 SDK 버전은
+# AdWhale SDK 의 Package.swift 가 exact 로 고정하고 있다.
+# ─────────────────────────────────────────────────────────────
+.build/
+.swiftpm/
+Package.resolved
+**/project.xcworkspace/xcshareddata/swiftpm/configuration/
+
+# ─────────────────────────────────────────────────────────────
+# 키
+# ─────────────────────────────────────────────────────────────
+# 로컬 전용 키 오버라이드 (본인 계정의 지면 UID)
+# Android 의 local.properties 와 같은 역할이다.
+/Config/Local.xcconfig
+
+# ─────────────────────────────────────────────────────────────
+# OS / 편집기
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+*~
+.fuse_hidden*
+.idea/
+.vscode/
