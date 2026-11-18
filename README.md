@@ -32,7 +32,7 @@ https://github.com/adwhale-sdk/adwhale-sdk-ios.git
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/adwhale-sdk/adwhale-sdk-ios.git", from: "1.0.0")
+    .package(url: "https://github.com/adwhale-sdk/adwhale-sdk-ios.git", from: "1.1.0")
 ]
 ```
 
@@ -72,8 +72,7 @@ open SwiftUISample/SwiftUISample.xcodeproj
 | 항목 | 버전 |
 |---|---|
 | iOS | 15.0+ |
-| Swift | 5.9+ |
-| Xcode | 16.0+ |
+| Xcode | 26.0+ |
 
 ---
 
@@ -137,11 +136,13 @@ Objective-C 어댑터를 제거해 런타임에 워터폴이 파트너 네트워
 ## 초기화 순서
 
 ```swift
-ATT 권한 요청  →  어댑터 register()  →  AdWhaleMediationAds.initialize()
+어댑터 register()  →  AdWhaleMediationAds.initialize()  →  GDPR 동의 요청(UMP)  →  광고 로드
 ```
 
-- ATT 를 먼저: SDK 는 `ATTrackingManager` 상태를 확인만 하고 팝업은 앱이 직접 띄웁니다.
-  초기화 뒤에 허용을 받으면 그 세션의 첫 요청은 IDFA 없이 나갑니다.
+- ATT 는 앱에서 직접 요청하지 않습니다. `AdWhaleMediationAds.requestGdprConsent(from:completion:)` 를
+  호출하면 UMP 가 GDPR 동의 폼과 ATT 안내를 순서대로 띄웁니다.
+  앱이 ATT 를 먼저 요청하면 요청 기회가 소진되어 UMP 의 동의 흐름이 멈출 수 있습니다.
+- 동의 요청은 앱이 활성 상태이고 화면에 뷰 컨트롤러가 떠 있을 때 호출해야 합니다.
 - `register()` 를 빠뜨리면 그 네트워크는 워터폴에서 통째로 건너뜁니다.
 - `initialize()` 없이 광고를 로드하면 전부 초기화 실패(200)로 떨어집니다.
 
@@ -158,6 +159,7 @@ Android 샘플([ADwhaleMediationSDK-Android](https://github.com/dev-adwhale/ADwh
 |---|---|---|
 | `programmatic banner` | 배너 — 일반 | 배너 — 일반 |
 | `xml banner` | 배너 — XIB (Interface Builder) | (해당 없음) |
+| (메인 버튼 없음) | 배너 — 프리로드 | 배너 — 프리로드 |
 | `interstitial` | 전면 광고 | 전면 광고 |
 | `Reward Ad` | 리워드 광고 | 리워드 광고 |
 | `App Open Ad` | 앱오프닝 광고 | 앱오프닝 광고 |
@@ -165,11 +167,12 @@ Android 샘플([ADwhaleMediationSDK-Android](https://github.com/dev-adwhale/ADwh
 | `Native Ad (for Template Binding)` | 네이티브 — 템플릿 바인딩 | 네이티브 — 템플릿 바인딩 |
 | `Native Template Binding Ad (with Style)` | 네이티브 — 템플릿 + 스타일 | 네이티브 — 템플릿 + 스타일 |
 | `앱 전환 광고 테스트` | 팝업 — 전환 | 팝업 — 전환 |
-| Back 키 종료 팝업 | 팝업 — 종료 | 팝업 — 종료 |
 | `etMediaUid` 입력 | 상단 Publisher UID 입력 | 상단 Publisher UID 입력 |
 
 > SwiftUI 에는 레이아웃 XML 이 없어 `xml banner` 에 대응하는 화면이 없습니다.
 > 코드로 붙이는 방식(배너 — 일반)이 SwiftUI 의 유일한 경로입니다.
+>
+> iOS 에는 Back 키가 없어 Android 의 종료 팝업에 대응하는 화면이 없습니다.
 
 ---
 
@@ -178,19 +181,22 @@ Android 샘플([ADwhaleMediationSDK-Android](https://github.com/dev-adwhale/ADwh
 | 애드폼 | Android | iOS |
 |---|---|---|
 | 배너 (자동 노출) | `AdWhaleMediationAdView` | `AdWhaleMediationAdView` |
-| 배너 (프리로드) | — | `AdWhaleMediationAdBannerView` |
+| 배너 (프리로드) | `AdWhaleMediationAdBannerView` | `AdWhaleMediationAdBannerView` |
 | 전면 | `AdWhaleMediationInterstitialAd` | `AdWhaleMediationInterstitialAd` |
 | 리워드 | `AdWhaleMediationRewardAd` | `AdWhaleMediationRewardAd` |
 | 네이티브 | `AdWhaleMediationNativeAdView` | `AdWhaleMediationNativeAdView` |
 | 앱오프닝 | `AdWhaleMediationAppOpenAd` | `AdWhaleMediationAppOpenAd` |
-| 종료 팝업 | `AdWhaleMediationExitPopupAd` | `AdWhaleMediationPopupAd` |
-| 전환 팝업 | (별도 클래스) | `AdWhaleMediationPopupAd` (동일 클래스) |
+| 전환 팝업 | `AdWhaleMediationTransitionPopupAd` | `AdWhaleMediationPopupAd` |
+| 종료 팝업 | `AdWhaleMediationExitPopupAd` | (없음) |
 
-iOS 에서는 종료 팝업과 전환 팝업이 하나의 클래스로 통합되어 있습니다.
-iOS 쪽 네트워크가 둘을 구분하지 않기 때문입니다.
+iOS 는 Back 키가 없어 종료 팝업을 제공하지 않습니다. 팝업은 앱 내 화면 전환 시점에만 사용합니다.
 
-프리로드 배너(`AdWhaleMediationAdBannerView`)는 iOS 에만 있는 클래스입니다.
-로드와 노출을 분리해 원하는 시점에 `show()` 할 수 있으며, 이 샘플에는 화면을 두지 않았습니다.
+프리로드 배너(`AdWhaleMediationAdBannerView`)는 로드와 노출을 분리해 원하는 시점에 `show()` 로 노출합니다.
+**SDK 1.1.0 부터는 `loadAd()` 만 호출하면 광고가 노출되지 않으며**, 첫 `show()` 이전에는 자동 갱신도 보류됩니다.
+샘플의 「배너 — 프리로드」 화면을 참고하세요.
+
+리워드 광고의 SSV(서버 측 보상 확인) 값은 AdMob · AdManager · Cauly(3.1.25 이상)에서 지원합니다.
+Cauly 는 `loadAd()` 전에 설정한 값만 전달되므로, 샘플은 로드 전에 값을 설정합니다.
 
 ---
 
@@ -217,7 +223,7 @@ iOS 쪽 네트워크가 둘을 구분하지 않기 때문입니다.
 
 AdFit `SuperboardPopUp` 은 로드 API 가 없고 `present()` 만이 광고를 요청합니다.
 그래서 `loadAd()` 성공은 "팝업 준비까지만 성공"인 잠정 결과이고, 재고는 `show()` 시점에 확정됩니다.
-**팝업이 뜨지 못해도 앱 기본 동작(종료 확인 / 화면 전환)은 반드시 일어나야 합니다.**
+**팝업이 뜨지 못해도 앱 기본 동작(화면 전환)은 반드시 일어나야 합니다.**
 샘플의 `PopupController` / `PopupSampleViewController` 가 그 폴백을 구현하고 있습니다.
 
 **3. delegate 를 설정하지 않으면 실패 콜백이 어디에도 가지 않습니다**

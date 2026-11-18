@@ -9,6 +9,7 @@ import AdWhaleSDK
 /// |---|---|
 /// | `etMediaUid` (Media Uid 입력) | 상단 Publisher UID 입력 + "이 UID 로 다시 초기화" |
 /// | `programmatic banner` | 배너 — 일반 (`AdWhaleMediationAdView`) |
+/// | — (Android 샘플 메인에는 없음) | 배너 — 프리로드 (`AdWhaleMediationAdBannerView`) |
 /// | `앱 전환 광고 테스트` | 팝업 — 전환 |
 /// | `interstitial` | 전면 광고 |
 /// | `Reward Ad` | 리워드 광고 |
@@ -16,7 +17,6 @@ import AdWhaleSDK
 /// | `Native Ad (for Custom Binding)` | 네이티브 — 커스텀 바인딩 |
 /// | `Native Ad (for Template Binding)` | 네이티브 — 템플릿 바인딩 |
 /// | `Native Template Binding Ad (with Style)` | 네이티브 — 템플릿 + 스타일 |
-/// | Back 키 종료 팝업 | 팝업 — 종료 |
 struct ContentView: View {
     @EnvironmentObject private var bootstrap: AdWhaleBootstrap
     @State private var publisherUid = SampleConfig.publisherUid
@@ -28,6 +28,7 @@ struct ContentView: View {
 
                 Section("배너") {
                     NavigationLink("배너 — 일반") { NormalBannerScreen() }
+                    NavigationLink("배너 — 프리로드") { PreloadBannerScreen() }
                 }
 
                 Section("전면 · 리워드 · 앱오프닝") {
@@ -43,7 +44,6 @@ struct ContentView: View {
                 }
 
                 Section("팝업") {
-                    NavigationLink("팝업 — 종료") { ExitPopupScreen() }
                     NavigationLink("팝업 — 전환") { TransitionPopupScreen() }
                 }
             }

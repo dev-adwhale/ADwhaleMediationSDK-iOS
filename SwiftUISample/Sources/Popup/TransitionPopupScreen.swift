@@ -40,10 +40,7 @@ struct TransitionPopupScreen: View {
     }
 
     private func load() {
-        controller.load(placementUid: placementUid,
-                        primaryButtonText: "이동",
-                        secondaryButtonText: "닫기",
-                        description: "다음 화면으로 이동합니다.")
+        controller.load(placementUid: placementUid)
     }
 
     private func navigateNext() {

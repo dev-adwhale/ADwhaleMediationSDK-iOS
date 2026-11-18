@@ -15,13 +15,13 @@ import AdWhaleLevelPlayAdapter
 ///
 /// ## 핵심 순서
 /// ```
-/// ATT 권한 요청  →  어댑터 register()  →  AdWhaleMediationAds.initialize()
+/// 어댑터 register()  →  AdWhaleMediationAds.initialize()  →  GDPR 동의 요청(UMP)  →  광고 로드
 /// ```
-/// - ATT 를 먼저 띄우는 이유: SDK 는 `ATTrackingManager` 상태를 "확인만" 하고
-///   팝업은 앱이 직접 띄운다. 초기화 이후에 허용을 받으면 그 세션의 첫 광고 요청은
-///   IDFA 없이 나간다.
 /// - `register()` 를 빠뜨리면 해당 네트워크가 워터폴에서 통째로 건너뛰어진다.
 /// - `initialize()` 없이 광고를 로드하면 전부 초기화 실패(statusCode 200)로 떨어진다.
+/// - GDPR 동의는 초기화 뒤에, 앱이 활성 상태일 때 요청한다. (EEA 밖 사용자에게는 폼이 뜨지 않는다)
+/// - ATT 는 앱이 직접 띄우지 않고 AdMob UMP 에 맡긴다. AdMob 콘솔에서 IDFA 메시지를 켜 두면
+///   UMP 가 동의 흐름 안에서 ATT 를 띄운다. 앱이 먼저 ATT 를 요청하면 UMP 의 동의 흐름이 멈출 수 있다.
 ///
 /// > Publisher UID 는 `Info.plist` 의 `net.adwhale.sdk.mediation.PUBLISHER_UID` 에서 읽는다.
 /// > 코드로 넘기려면 `initialize(publisherUid:completion:)` 오버로드를 쓴다.
@@ -45,12 +45,16 @@ final class AdWhaleBootstrap: ObservableObject {
         // 운영 빌드에서는 .error 또는 .none 을 권장한다.
         AdWhaleLog.setLogLevel(.verbose)
 
-        requestTrackingAuthorizationIfNeeded { [weak self] in
-            guard let self else { return }
-            self.registerAdapters()
-            AdWhaleMediationAds.initialize { [weak self] statusCode, message in
-                self?.update(statusCode: statusCode, message: message)
-            }
+        registerAdapters()
+        AdWhaleMediationAds.initialize { [weak self] statusCode, message in
+            self?.update(statusCode: statusCode, message: message)
+        }
+
+        // 초기화가 앱 활성화보다 먼저 끝나는 경우를 위해, 활성화될 때도 한 번 더 시도한다.
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.requestGdprConsentIfReady()
         }
     }
 
@@ -88,22 +92,25 @@ final class AdWhaleBootstrap: ObservableObject {
         DispatchQueue.main.async {
             self.isInitialized = succeeded
             self.lastMessage = text
+            self.requestGdprConsentIfReady()
         }
     }
 
-    /// iOS 14+ ATT 권한 요청. 이미 결정된 상태면 바로 다음 단계로 넘어간다.
-    private func requestTrackingAuthorizationIfNeeded(completion: @escaping () -> Void) {
-        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else {
-            adlog("ATT 상태: \(Self.attStatusName)")
-            completion()
-            return
-        }
-        // 앱이 foreground 로 올라오기 전에 요청하면 팝업이 무시될 수 있어 약간 지연시킨다.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            ATTrackingManager.requestTrackingAuthorization { _ in
-                adlog("ATT 응답: \(Self.attStatusName)")
-                DispatchQueue.main.async { completion() }
-            }
+    // MARK: - GDPR 동의 (UMP)
+
+    private var didRequestGdprConsent = false
+
+    /// 초기화가 끝났고 앱이 활성 상태일 때 한 번만 GDPR 동의를 요청한다.
+    /// 동의 폼과 ATT 알림(AdMob 콘솔에서 IDFA 메시지를 켠 경우)은 UMP 가 띄운다.
+    private func requestGdprConsentIfReady() {
+        guard isInitialized, !didRequestGdprConsent,
+              UIApplication.shared.applicationState == .active,
+              let viewController = TopViewController.find() else { return }
+        didRequestGdprConsent = true
+
+        AdWhaleMediationAds.requestGdprConsent(from: viewController) { isSuccess, message in
+            adlog("GDPR 동의 처리 \(isSuccess ? "완료" : "실패") (\(message)) — "
+                  + "상태 \(AdWhaleMediationAds.gdprConsentStatus.rawValue), ATT \(Self.attStatusName)")
         }
     }
 

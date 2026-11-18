@@ -10,10 +10,6 @@ import AdWhaleSDK
 /// 그래서 `didFailToShowWithError`(300) 와 `didCloseWithReason` 양쪽 모두에서 다음 화면으로 넘긴다.
 final class TransitionPopupViewController: PopupSampleViewController {
 
-    override var primaryButtonText: String { "이동" }
-    override var secondaryButtonText: String { "닫기" }
-    override var customDescription: String { "다음 화면으로 이동합니다." }
-
     /// 팝업 처리 결과와 무관하게 이동이 한 번만 일어나도록 하는 가드.
     private var didNavigate = false
 

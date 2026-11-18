@@ -16,8 +16,11 @@ import AdWhaleSDK
 /// 광고를 닫았다는 사실(`rewardedAdDidDismiss`)은 보상 조건이 아니다.
 ///
 /// ## SSV (Server-Side Verification)
-/// `setUserId` / `setCustomData` 는 **AdMob 전용**이며 `show()` 시점의 최신 값이 적용된다.
-/// 로드 전에 넣어도 되고, 로드 후 show 직전에 바꿔도 된다.
+/// `setUserId` / `setCustomData` 는 AdMob · AdManager · Cauly(Cauly SDK 3.1.25 이상)에서 동작한다.
+/// 그 외 네트워크에서는 무시된다.
+/// - AdMob · AdManager 는 `show()` 직전의 최신 값이 적용된다.
+/// - Cauly 는 로드 요청 때 값을 실으므로 `loadAd()` 전에 설정해야 반영된다.
+/// 그래서 이 샘플은 로드 전에 넣고, show 직전에 한 번 더 넣는다.
 final class RewardViewController: AdSampleViewController {
 
     override var defaultPlacementUid: String { SampleConfig.rewardPlacementUid }
@@ -31,7 +34,7 @@ final class RewardViewController: AdSampleViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        addNote("SSV 값(userId / customData)은 AdMob 전용이며 show() 시점의 값이 전달된다.")
+        addNote("SSV 값(userId / customData)은 AdMob · AdManager · Cauly(3.1.25 이상)에서 전달된다. Cauly 는 loadAd 전에 설정한 값만 전달되므로 로드 전에 입력한다.")
 
         userIdField.placeholder = "SSV userId (선택)"
         userIdField.borderStyle = .roundedRect
@@ -60,6 +63,8 @@ final class RewardViewController: AdSampleViewController {
         ad.fullScreenDelegate = self
         rewardAd = ad
 
+        // Cauly 는 로드 요청 때 SSV 값을 실으므로 loadAd() 전에 넣는다.
+        applySSV(to: ad)
         adlog("리워드 loadAd() — placement=\(placementUid)")
         ad.loadAd(loadDelegate: self)
     }
@@ -70,7 +75,15 @@ final class RewardViewController: AdSampleViewController {
             return
         }
 
-        // SSV 값은 show 직전에 넣어도 반영된다.
+        // AdMob · AdManager 는 show 직전 값이 반영된다. (Cauly 에는 영향 없음)
+        applySSV(to: ad)
+
+        adlog("리워드 show(from:rewardDelegate:)")
+        ad.show(from: self, rewardDelegate: self)
+    }
+
+    /// 입력한 SSV 값을 광고 인스턴스에 넣는다.
+    private func applySSV(to ad: AdWhaleMediationRewardAd) {
         let userId = (userIdField.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if !userId.isEmpty {
             ad.setUserId(userId)
@@ -81,9 +94,6 @@ final class RewardViewController: AdSampleViewController {
             ad.setCustomData(["sample": customData])
             adlog("리워드 setCustomData([\"sample\": \(customData)])")
         }
-
-        adlog("리워드 show(from:rewardDelegate:)")
-        ad.show(from: self, rewardDelegate: self)
     }
 
     deinit {

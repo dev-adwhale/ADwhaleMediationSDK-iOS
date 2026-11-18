@@ -3,9 +3,8 @@ import AdWhaleSDK
 
 /// 팝업 광고 — `AdWhaleMediationPopupAd`
 ///
-/// iOS 에서는 종료 팝업과 전환 팝업이 **하나의 클래스로 통합**되어 있다.
-/// (iOS 쪽 네트워크가 둘을 구분하지 않는다. Android 의
-///  `AdWhaleMediationExitPopupAd` / 전환 팝업이 여기로 합쳐진다)
+/// iOS 는 **앱 내 화면 전환 팝업**만 제공한다. (iOS 앱에는 뒤로 가기 키로 앱을 종료하는 동작이 없고,
+/// 광고 네트워크(AdFit · Cauly)도 iOS 용 앱 종료 팝업을 제공하지 않는다)
 ///
 /// ## AdFit 전용 · 로드/노출이 사실상 한 몸이다
 /// AdFit `SuperboardPopUp` 에는 로드 API 가 없고 `present()` 만이 광고를 요청한다.
@@ -14,7 +13,7 @@ import AdWhaleSDK
 ///
 /// | 단계 | 콜백 | 의미 |
 /// |---|---|---|
-/// | `loadAd()` | `popupAd(_:didLoadWith:)` | 잠정 성공. 재고 미확인 |
+/// | `loadAd()` | `popupAdDidLoad(_:)` | 잠정 성공. 재고 미확인 |
 /// | `show()` 성공 | `popupAdDidShow(_:)` | 실제 노출 |
 /// | `show()` 재고 없음 | `popupAd(_:didFailToShowWithError:)` **statusCode 300** | 노출 시점에 광고 미충족 |
 ///
@@ -28,16 +27,12 @@ class PopupSampleViewController: AdSampleViewController {
     private(set) var isLoaded = false
 
     /// 팝업이 뜨지 못했을 때 실행할 앱 기본 동작.
-    /// 하위 클래스가 재정의한다. (종료 확인 / 화면 전환 등)
+    /// 하위 클래스가 재정의한다. (화면 전환 등)
     func handlePopupUnavailable(reason: String) {}
 
-    /// 팝업이 닫혔을 때. 닫힌 이유에 따라 후속 동작을 결정한다.
+    /// 팝업이 닫혔을 때. 닫힘 사유는 네트워크마다 다르므로(AdFit 은 `.ambiguousCancel` · `.todayDismiss`)
+    /// 사유로 후속 동작을 가르지 말고, 닫히면 원래 하려던 동작을 이어서 수행한다.
     func handlePopupClosed(reason: AdWhalePopupCloseReason) {}
-
-    /// 팝업 버튼 문구. 하위 클래스가 정한다.
-    var primaryButtonText: String { "확인" }
-    var secondaryButtonText: String { "취소" }
-    var customDescription: String { "" }
 
     // MARK: - 연동 코드
 
@@ -47,13 +42,6 @@ class PopupSampleViewController: AdSampleViewController {
 
         let ad = AdWhaleMediationPopupAd(placementUid: placementUid)
         ad.delegate = self
-
-        // 버튼 문구 / 안내 문구는 로드 전에 지정한다.
-        ad.setCustomizeButtonText(primaryButtonText: primaryButtonText,
-                                  secondaryButtonText: secondaryButtonText)
-        if !customDescription.isEmpty {
-            ad.setCustomDescription(customDescription)
-        }
 
         popupAd = ad
         adlog("팝업 loadAd() — placement=\(placementUid)")
@@ -72,7 +60,7 @@ class PopupSampleViewController: AdSampleViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Android 의 exitPopupAd.resume(activity) 과 같은 자리.
+        // 화면 복귀 시 호출한다. (현재 지원 네트워크에서는 별도 동작 없음)
         popupAd?.resume()
     }
 

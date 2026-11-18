@@ -67,7 +67,7 @@ enum SampleConfig {
     static let rewardPlacementUid       = resolve("RewardPlacementUid", "ADwhale Mediation SDK 가이드 내 키값 참조")
     static let nativePlacementUid       = resolve("NativePlacementUid", "ADwhale Mediation SDK 가이드 내 키값 참조")
     static let appOpenPlacementUid      = resolve("AppOpenPlacementUid", "ADwhale Mediation SDK 가이드 내 키값 참조")
-    /// 팝업(종료 / 전환 공용) 지면 UID
+    /// 팝업(앱 내 화면 전환) 지면 UID
     static let popupPlacementUid        = resolve("PopupPlacementUid", "ADwhale Mediation SDK 가이드 내 키값 참조")
 
     // MARK: - 진단

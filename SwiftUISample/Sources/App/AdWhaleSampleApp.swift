@@ -6,7 +6,7 @@ struct AdWhaleSampleApp: App {
 
     init() {
         adlog("샘플 시작\n\(SampleConfig.summary)")
-        // SDK 초기화 (ATT → register → initialize)
+        // SDK 초기화 (register → initialize → GDPR 동의)
         AdWhaleBootstrap.shared.start()
     }
 

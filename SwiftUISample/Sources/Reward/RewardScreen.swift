@@ -16,7 +16,11 @@ import AdWhaleSDK
 /// 광고를 닫았다는 사실(`rewardedAdDidDismiss`)은 보상 조건이 아니다.
 ///
 /// ## SSV (Server-Side Verification)
-/// `setUserId` / `setCustomData` 는 **AdMob 전용**이며 `show()` 시점의 최신 값이 적용된다.
+/// `setUserId` / `setCustomData` 는 AdMob · AdManager · Cauly(Cauly SDK 3.1.25 이상)에서 동작한다.
+/// 그 외 네트워크에서는 무시된다.
+/// - AdMob · AdManager 는 `show()` 직전의 최신 값이 적용된다.
+/// - Cauly 는 로드 요청 때 값을 실으므로 `loadAd()` 전에 설정해야 반영된다.
+/// 그래서 이 샘플은 로드 전에 넣고, show 직전에 한 번 더 넣는다.
 struct RewardScreen: View {
     @StateObject private var controller = RewardController()
     @State private var placementUid = SampleConfig.rewardPlacementUid
@@ -25,7 +29,7 @@ struct RewardScreen: View {
 
     var body: some View {
         AdSampleScreen(title: "리워드 광고", placementUid: $placementUid) {
-            SampleNote("SSV 값(userId / customData)은 AdMob 전용이며 show() 시점의 값이 전달된다.")
+            SampleNote("SSV 값(userId / customData)은 AdMob · AdManager · Cauly(3.1.25 이상)에서 전달된다. Cauly 는 loadAd 전에 설정한 값만 전달되므로 로드 전에 입력한다.")
 
             TextField("SSV userId (선택)", text: $userId)
                 .textFieldStyle(.roundedBorder)
@@ -37,7 +41,7 @@ struct RewardScreen: View {
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
 
-            SampleButton("리워드 로드 (loadAd)") { controller.load(placementUid: placementUid) }
+            SampleButton("리워드 로드 (loadAd)") { controller.load(placementUid: placementUid, userId: userId, customData: customData) }
             SampleButton("리워드 노출 (show)") { controller.show(userId: userId, customData: customData) }
         }
     }
@@ -47,7 +51,7 @@ final class RewardController: NSObject, ObservableObject {
     private var ad: AdWhaleMediationRewardAd?
     private var isLoaded = false
 
-    func load(placementUid: String) {
+    func load(placementUid: String, userId: String, customData: String) {
         ad?.destroy()
         isLoaded = false
 
@@ -56,6 +60,8 @@ final class RewardController: NSObject, ObservableObject {
         ad.fullScreenDelegate = self
         self.ad = ad
 
+        // Cauly 는 로드 요청 때 SSV 값을 실으므로 loadAd() 전에 넣는다.
+        applySSV(to: ad, userId: userId, customData: customData)
         adlog("리워드 loadAd() — placement=\(placementUid)")
         ad.loadAd(loadDelegate: self)
     }
@@ -70,7 +76,15 @@ final class RewardController: NSObject, ObservableObject {
             return
         }
 
-        // SSV 값은 show 직전에 넣어도 반영된다.
+        // AdMob · AdManager 는 show 직전 값이 반영된다. (Cauly 에는 영향 없음)
+        applySSV(to: ad, userId: userId, customData: customData)
+
+        adlog("리워드 show(from:rewardDelegate:)")
+        ad.show(from: host, rewardDelegate: self)
+    }
+
+    /// 입력한 SSV 값을 광고 인스턴스에 넣는다.
+    private func applySSV(to ad: AdWhaleMediationRewardAd, userId: String, customData: String) {
         let trimmedUserId = userId.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedUserId.isEmpty {
             ad.setUserId(trimmedUserId)
@@ -81,9 +95,6 @@ final class RewardController: NSObject, ObservableObject {
             ad.setCustomData(["sample": trimmedCustomData])
             adlog("리워드 setCustomData([\"sample\": \(trimmedCustomData)])")
         }
-
-        adlog("리워드 show(from:rewardDelegate:)")
-        ad.show(from: host, rewardDelegate: self)
     }
 
     deinit { ad?.destroy() }
